@@ -572,6 +572,7 @@ export interface DashboardData {
         defectRate: number;
         productionByLine: DataPoint[];
         oeeByLine: DataPoint[];
+        openErrorCount: number;
     };
     performance: {
         sevenDayTrend: TrendData[];

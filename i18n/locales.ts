@@ -443,6 +443,11 @@ export const vi = {
   stopped: 'Stopped',
   error: 'Error',
   machines: 'machines',
+
+  // Add Area
+  addArea: 'Thêm Khu Vực Mới',
+  enterNewAreaName: 'Nhập tên khu vực mới:',
+  enterNewLineId: 'Nhập ID chuyền mới và duy nhất cho khu vực "{{areaName}}":',
 };
 
 export const en: Translations = {
@@ -886,4 +891,9 @@ export const en: Translations = {
   stopped: 'Stopped',
   error: 'Error',
   machines: 'machines',
+
+  // Add Area
+  addArea: 'Add New Area',
+  enterNewAreaName: 'Enter new area name:',
+  enterNewLineId: 'Enter a new, unique Line ID for area "{{areaName}}":',
 };

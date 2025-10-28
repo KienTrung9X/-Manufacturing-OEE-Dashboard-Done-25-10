@@ -8,16 +8,18 @@ interface MachineEditModalProps {
   onSubmit: (data: NewMachineData, id: number | null) => void;
   machineToEdit: MachineInfo | null;
   allLines: string[];
+  defaults?: Partial<NewMachineData>;
+  areaMap: Record<string, string>;
 }
 
-const formInputClass = "mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 text-gray-800 dark:text-white focus:outline-none focus:ring-cyan-500 focus:border-cyan-500";
+const formInputClass = "mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 text-gray-800 dark:text-white focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed";
 const formLabelClass = "block text-sm font-medium text-gray-700 dark:text-gray-300";
 
 const FormField: React.FC<{ label: string; id: string; required?: boolean; children: React.ReactNode }> = ({ label, id, required, children }) => (
     <div><label htmlFor={id} className={formLabelClass}>{label} {required && <span className="text-red-500">*</span>}</label>{children}</div>
 );
 
-const MachineEditModal: React.FC<MachineEditModalProps> = ({ isOpen, onClose, onSubmit, machineToEdit, allLines }) => {
+const MachineEditModal: React.FC<MachineEditModalProps> = ({ isOpen, onClose, onSubmit, machineToEdit, allLines, defaults, areaMap }) => {
     const { t } = useTranslation();
     const isUpdateMode = !!machineToEdit;
     
@@ -45,11 +47,11 @@ const MachineEditModal: React.FC<MachineEditModalProps> = ({ isOpen, onClose, on
                     STATUS: machineToEdit.STATUS,
                 });
             } else {
-                setFormData(getInitialState());
+                setFormData({ ...getInitialState(), ...defaults });
             }
             setError('');
         }
-    }, [isOpen, machineToEdit, allLines]);
+    }, [isOpen, machineToEdit, allLines, defaults]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -84,8 +86,8 @@ const MachineEditModal: React.FC<MachineEditModalProps> = ({ isOpen, onClose, on
                             <FormField label={t('machineName')} id="MACHINE_NAME" required><input type="text" name="MACHINE_NAME" value={formData.MACHINE_NAME} onChange={handleChange} className={formInputClass} required /></FormField>
                         </div>
                         <FormField label={t('line')} id="LINE_ID" required>
-                            <select name="LINE_ID" value={formData.LINE_ID} onChange={handleChange} className={formInputClass}>
-                                {allLines.map(line => <option key={line} value={line}>{line}</option>)}
+                            <select name="LINE_ID" value={formData.LINE_ID} onChange={handleChange} className={formInputClass} disabled={!isUpdateMode && !!defaults?.LINE_ID}>
+                                {allLines.map(line => <option key={line} value={line}>{line} ({areaMap[line] || 'N/A'})</option>)}
                             </select>
                         </FormField>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

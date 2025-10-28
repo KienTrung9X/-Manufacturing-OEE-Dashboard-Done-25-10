@@ -55,7 +55,7 @@ export let defectCausesData: DefectCause[] = [
     { id: 5, category: 'Environment', detail: null },
 ];
 
-export const LINE_TO_AREA_MAP: Record<string, string> = {
+export let LINE_TO_AREA_MAP: Record<string, string> = {
     '31': 'Area Stamping', '32': 'Area Assembly', '41': 'Area Painting',
     '42': 'Area Painting', '51': 'Area Finishing',
 };
@@ -634,6 +634,8 @@ export const getDashboardData = async (
         return { name: lineId, value: lineOee };
     });
 
+    const openErrorCount = allErrorReports.filter(r => r.status === 'Reported' || r.status === 'In Progress').length;
+
     // --- Performance ---
     const sevenDayTrend: TrendData[] = [];
     for (let i = 6; i >= 0; i--) {
@@ -895,6 +897,7 @@ export const getDashboardData = async (
             defectRate,
             productionByLine,
             oeeByLine,
+            openErrorCount,
         },
         performance: {
             sevenDayTrend,

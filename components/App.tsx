@@ -436,6 +436,7 @@ const App: React.FC = () => {
   const [activePurchasingSubTab, setActivePurchasingSubTab] = useState<PurchasingSubTab>('mcPart');
   const [activeErrorLogSubTab, setActiveErrorLogSubTab] = useState<ErrorLogSubTab>('errorReports');
   const [pmScheduleInitialFilter, setPmScheduleInitialFilter] = useState<'all' | 'Overdue' | 'Due soon' | 'On schedule'>('all');
+  const [lineToAreaMap, setLineToAreaMap] = useState(LINE_TO_AREA_MAP);
 
 
   // Modal states
@@ -448,6 +449,7 @@ const App: React.FC = () => {
   const [isMaintenanceOrderModalOpen, setIsMaintenanceOrderModalOpen] = useState(false);
   const [isMachineEditModalOpen, setIsMachineEditModalOpen] = useState(false);
   const [machineToEdit, setMachineToEdit] = useState<MachineInfo | null>(null);
+  const [machineDefaults, setMachineDefaults] = useState<Partial<NewMachineData> | undefined>(undefined);
   const [isSparePartDetailsModalOpen, setIsSparePartDetailsModalOpen] = useState(false);
   const [selectedPart, setSelectedPart] = useState<SparePart | null>(null);
   const [isConsumableRequestModalOpen, setIsConsumableRequestModalOpen] = useState(false);
@@ -551,6 +553,40 @@ const App: React.FC = () => {
     setSelectedMachineId(machineId);
     setIsMachineDetailsModalOpen(true);
   };
+  
+  const handleUpdateAreaName = (oldAreaName: string, newAreaName: string) => {
+    if (Object.values(lineToAreaMap).includes(newAreaName)) {
+        alert(`Area name "${newAreaName}" already exists.`);
+        return;
+    }
+    setLineToAreaMap(prevMap => {
+        const newMap = { ...prevMap };
+        for (const lineId in newMap) {
+            if (newMap[lineId] === oldAreaName) {
+                newMap[lineId] = newAreaName;
+            }
+        }
+        return newMap;
+    });
+};
+
+const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
+    // Validation is handled in the modal, but double-checking here is safe.
+    if (Object.values(lineToAreaMap).some(name => name.toLowerCase() === newAreaName.trim().toLowerCase()) || lineToAreaMap[newLineId.trim()]) {
+        console.error("Attempted to add duplicate area name or line ID.");
+        return false;
+    }
+    
+    // Update the "backend" map in the mock service.
+    LINE_TO_AREA_MAP[newLineId.trim()] = newAreaName.trim();
+
+    // Update the local state to trigger a UI refresh.
+    setLineToAreaMap(prev => ({
+        ...prev,
+        [newLineId.trim()]: newAreaName.trim()
+    }));
+    return true; // Indicate success
+};
 
   // --- START MODAL HANDLERS ---
   const handleOpenUpdateModal = (report: EnrichedErrorReport) => {
@@ -598,8 +634,9 @@ const App: React.FC = () => {
     setIsCompleteMaintOrderModalOpen(false);
   };
   
-  const handleOpenMachineEditModal = (machine: MachineInfo | null) => {
+  const handleOpenMachineEditModal = (machine: MachineInfo | null, defaults?: Partial<NewMachineData>) => {
     setMachineToEdit(machine);
+    setMachineDefaults(defaults);
     setIsMachineEditModalOpen(true);
   };
 
@@ -721,17 +758,24 @@ const App: React.FC = () => {
   ];
 
   // Components for tabs
-  const TabButton: React.FC<{ tabId: Tab, icon: React.ReactNode, label: string }> = ({ tabId, icon, label }) => (
+  const TabButton: React.FC<{ tabId: Tab, icon: React.ReactNode, label: string, badge?: number }> = ({ tabId, icon, label, badge }) => (
     <button
       onClick={() => setActiveTab(tabId)}
-      className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+      className={`w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
         activeTab === tabId
           ? 'bg-cyan-500 text-white shadow-md'
           : 'text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
       }`}
     >
-      {icon}
-      {label}
+      <div className="flex items-center gap-3">
+        {icon}
+        {label}
+      </div>
+      {badge && badge > 0 && (
+        <span className="bg-red-600 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center animate-pulse-badge">
+          {badge}
+        </span>
+      )}
     </button>
   );
 
@@ -766,6 +810,18 @@ const App: React.FC = () => {
       });
   };
 
+  const shouldShowFilterBar = useMemo(() => {
+    if (activeTab === 'overview' || activeTab === 'errorLog') {
+        return true;
+    }
+    if (activeTab === 'maintenance') {
+        return ['dashboard', 'maintenanceLog'].includes(activeMaintenanceSubTab);
+    }
+    // 'shopFloor' and 'purchasing' tabs do not need the main filter bar.
+    return false;
+  }, [activeTab, activeMaintenanceSubTab]);
+
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center z-10 sticky top-0">
@@ -787,20 +843,22 @@ const App: React.FC = () => {
         <aside className="w-64 bg-white dark:bg-gray-800 p-4 space-y-2 flex-shrink-0 shadow-lg">
           <TabButton tabId="shopFloor" icon={<LayoutGrid size={20} />} label={t('shopFloorTab')} />
           <TabButton tabId="overview" icon={<LayoutDashboard size={20} />} label={t('overviewTab')} />
-          <TabButton tabId="errorLog" icon={<ShieldAlert size={20} />} label={t('errorLogTab')} />
+          <TabButton tabId="errorLog" icon={<ShieldAlert size={20} />} label={t('errorLogTab')} badge={data?.summary.openErrorCount} />
           <TabButton tabId="maintenance" icon={<Wrench size={20} />} label={t('maintenanceTab')} />
           <TabButton tabId="purchasing" icon={<ShoppingCart size={20} />} label={t('purchasingTab')} />
         </aside>
 
         <main className="flex-1 p-6 bg-gray-100 dark:bg-gray-900 overflow-y-auto">
-          <FilterBar 
-            filters={filters} 
-            onFilterChange={handleFilterChange} 
-            onClearFilters={handleClearFilters}
-            availableAreas={data?.availableLines ? [...new Set(data.availableLines.map(line => LINE_TO_AREA_MAP[line]).filter(Boolean))] : []}
-            thresholds={thresholds}
-            onThresholdChange={handleThresholdChange}
-          />
+          {shouldShowFilterBar && (
+            <FilterBar 
+                filters={filters} 
+                onFilterChange={handleFilterChange} 
+                onClearFilters={handleClearFilters}
+                availableAreas={data?.availableLines ? [...new Set(Object.values(lineToAreaMap).filter(Boolean))] : []}
+                thresholds={thresholds}
+                onThresholdChange={handleThresholdChange}
+            />
+          )}
 
           {isLoading && (
             <div className="flex justify-center items-center h-64">
@@ -819,9 +877,14 @@ const App: React.FC = () => {
                         allMachines={data.allMachineInfo} 
                         machineStatus={data.machineStatus}
                         onMachineSelect={handleMachineSelect}
-                        onAddMachine={() => handleOpenMachineEditModal(null)}
+                        onAddMachine={(defaults) => handleOpenMachineEditModal(null, defaults)}
                         onEditMachine={(machine) => handleOpenMachineEditModal(machine)}
                         onUpdateMachinePosition={handleUpdateMachinePosition}
+                        areaMap={lineToAreaMap}
+                        onUpdateAreaName={handleUpdateAreaName}
+                        onAddNewAreaSubmit={handleAddNewAreaSubmit}
+                        existingAreaNames={Object.values(lineToAreaMap)}
+                        existingLineIds={Object.keys(lineToAreaMap)}
                     />
                 </section>
               )}
@@ -1057,6 +1120,8 @@ const App: React.FC = () => {
             onSubmit={handleMachineSubmit}
             machineToEdit={machineToEdit}
             allLines={data?.availableLines || []}
+            defaults={machineDefaults}
+            areaMap={lineToAreaMap}
        />
         {enrichedSelectedPart && <SparePartDetailsModal isOpen={isSparePartDetailsModalOpen} onClose={() => setIsSparePartDetailsModalOpen(false)} part={enrichedSelectedPart} />}
         <ConsumableRequestModal isOpen={isConsumableRequestModalOpen} onClose={() => setIsConsumableRequestModalOpen(false)} onSubmit={handleConsumableRequestSubmit} />
