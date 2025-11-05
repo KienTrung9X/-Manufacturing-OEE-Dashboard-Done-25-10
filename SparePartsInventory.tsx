@@ -92,13 +92,12 @@ interface SparePartsInventoryProps {
     onAddNewPart: () => void;
     onEditPart: (part: SparePart) => void;
     onToggleFlag: (partId: number) => void;
-    onCreateRequest: (part: SparePart) => void;
 }
 
 type SortKey = keyof SparePart | 'status';
 type SortDirection = 'ascending' | 'descending';
 
-const SparePartsInventory: React.FC<SparePartsInventoryProps> = ({ parts, onPartSelect, onAddNewPart, onEditPart, onToggleFlag, onCreateRequest }) => {
+const SparePartsInventory: React.FC<SparePartsInventoryProps> = ({ parts, onPartSelect, onAddNewPart, onEditPart, onToggleFlag }) => {
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({ key: 'part_code', direction: 'ascending' });
@@ -179,7 +178,7 @@ const SparePartsInventory: React.FC<SparePartsInventoryProps> = ({ parts, onPart
             </div>
              {lowStockParts.length > 0 && (
                 <div className="mb-6">
-                    <LowStockTable lowStockParts={lowStockParts} onCreatePo={onCreateRequest} />
+                    <LowStockTable lowStockParts={lowStockParts} onCreatePo={() => {}} />
                 </div>
             )}
             <div className="bg-gray-800 p-4 rounded-lg shadow-md">
@@ -242,9 +241,7 @@ const SparePartsInventory: React.FC<SparePartsInventoryProps> = ({ parts, onPart
                                                 <button onClick={() => onToggleFlag(part.id)} title={t('flagForOrder')} className={`p-2 rounded-md transition-colors ${part.flagged_for_order ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40' : 'text-gray-400 hover:text-white'}`}>
                                                     <Flag size={16} />
                                                 </button>
-                                                <button onClick={() => onCreateRequest(part)} title={t('createPurchaseRequest')} className="p-2 text-gray-400 hover:text-white hover:bg-cyan-500/20 rounded-md transition-colors">
-                                                    <ShoppingCart size={16} />
-                                                </button>
+
                                                 <button onClick={() => onEditPart(part)} title={t('edit')} className="p-2 text-gray-400 hover:text-white hover:bg-gray-600/50 rounded-md transition-colors">
                                                     <Edit size={16} />
                                                 </button>

@@ -12,7 +12,7 @@ import {
     addMachine,
     updateMachine,
 
-    addMcPartRequest,
+
     addSparePart,
     updateSparePart,
     toggleFlagForOrder,
@@ -21,7 +21,7 @@ import {
     // FIX: Import LINE_TO_AREA_MAP to resolve 'Cannot find name' error.
     LINE_TO_AREA_MAP,
 } from '../services/dataService';
-import { DashboardData, EnrichedErrorReport, NewErrorReportData, UpdateErrorData, ErrorReportStatus, NewMaintenanceOrderData, CompleteMaintenanceOrderData, EnrichedDefectRecord, MachineInfo, NewMachineData, SparePart, EnrichedMaintenanceOrder, McPartPurchaseRequest, PurchaseStatus, NewMcPartRequestData, NewSparePartData, EnrichedMaintenanceSchedule, McPartOrder, EnrichedSparePart, NewDefectData, User, PmType } from '../types';
+import { DashboardData, EnrichedErrorReport, NewErrorReportData, UpdateErrorData, ErrorReportStatus, NewMaintenanceOrderData, CompleteMaintenanceOrderData, EnrichedDefectRecord, MachineInfo, NewMachineData, SparePart, EnrichedMaintenanceOrder, NewSparePartData, EnrichedMaintenanceSchedule, McPartOrder, EnrichedSparePart, NewDefectData, User, PmType } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
 
 // UI Components
@@ -50,9 +50,7 @@ import MaintenanceOrderModal from './MaintenanceOrderModal';
 import MachineEditModal from './MachineEditModal';
 import SparePartDetailsModal from './SparePartDetailsModal';
 
-import McPartRequestModal from './McPartRequestModal';
 import SparePartEditModal from './SparePartEditModal';
-import NewMcPartRequestModal from './NewMcPartRequestModal';
 // import MaintenanceScheduleView from './MaintenanceSchedule';
 import DeploymentChecklistModal from './DeploymentChecklistModal';
 import DataEntryModal from './DataEntryModal';
@@ -66,12 +64,12 @@ import DefectDetailsModal from './DefectDetailsModal';
 
 
 // Icons
-import { LayoutDashboard, BarChart3, ShieldAlert, AlertTriangle, ListChecks, Database, HelpCircle, PlusCircle, Grid, Wrench, PackageSearch, ShoppingCart, Sun, Moon, Languages, Loader2, CalendarClock, Truck, CheckCircle, ClipboardList, Package, ListOrdered, Plus, LayoutGrid } from 'lucide-react';
+import { LayoutDashboard, BarChart3, ShieldAlert, AlertTriangle, ListChecks, Database, HelpCircle, PlusCircle, Grid, Wrench, PackageSearch, Sun, Moon, Languages, Loader2, CalendarClock, Truck, CheckCircle, ClipboardList, Package, ListOrdered, LayoutGrid } from 'lucide-react';
 
-type Tab = 'shopFloor' | 'overview' | 'errorLog' | 'maintenance' | 'purchasing';
+type Tab = 'shopFloor' | 'overview' | 'errorLog' | 'maintenance';
 type OverviewSubTab = 'summary' | 'performance' | 'quality' | 'downtime' | 'benchmarking';
 type MaintenanceSubTab = 'dashboard' | 'mcPartInventory' | 'purchaseOrders' | 'pmSchedule' | 'maintenanceLog';
-type PurchasingSubTab = 'mcPart';
+
 type ErrorLogSubTab = 'errorReports' | 'defectLog';
 
 // --- START OF IN-FILE PURCHASING COMPONENTS ---
@@ -142,61 +140,7 @@ const McPartPurchaseOrders: React.FC<McPartPurchaseOrdersProps> = ({ orders, t }
 };
 
 
-interface McPartPurchasingProps {
-    requests: McPartPurchaseRequest[];
-    t: (key: any) => string;
-    onAdd: () => void;
-}
 
-const McPartPurchasing: React.FC<McPartPurchasingProps> = ({ requests, t, onAdd }) => {
-    const getStatusChip = (status: PurchaseStatus) => {
-        const styles: Record<PurchaseStatus, string> = {
-            'Pending': 'bg-yellow-900 text-yellow-300',
-            'Approved': 'bg-blue-900 text-blue-300',
-            'Ordered': 'bg-purple-900 text-purple-300',
-            'Received': 'bg-green-900 text-green-300',
-        };
-        return <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status]}`}>{t(status)}</span>;
-    };
-    
-    return (
-         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
-             <div className="flex justify-end mb-4">
-                <button onClick={onAdd} className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center gap-2">
-                    <Plus size={16} /> {t('addNewRequest')}
-                </button>
-            </div>
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                            <th className="py-3 px-4 text-left">{t('itemCode')}</th>
-                            <th className="py-3 px-4 text-left">{t('itemName')}</th>
-                            <th className="py-3 px-4 text-left">{t('quantity')}</th>
-                            <th className="py-3 px-4 text-left">{t('reasonForPurchase')}</th>
-                            <th className="py-3 px-4 text-left">{t('date')}</th>
-                            <th className="py-3 px-4 text-left">{t('status')}</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                        {requests.length > 0 ? requests.map(req => (
-                            <tr key={req.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                <td className="py-3 px-4 font-mono">{req.item_code}</td>
-                                <td className="py-3 px-4">{req.item_name}</td>
-                                <td className="py-3 px-4">{req.quantity}</td>
-                                <td className="py-3 px-4">{req.reason}</td>
-                                <td className="py-3 px-4">{req.request_date}</td>
-                                <td className="py-3 px-4">{getStatusChip(req.status)}</td>
-                            </tr>
-                        )) : (
-                            <tr><td colSpan={6} className="text-center py-8 text-gray-500">{t('noMcPartRequests')}</td></tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    );
-};
 
 
 
@@ -375,7 +319,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('shopFloor');
   const [activeOverviewSubTab, setActiveOverviewSubTab] = useState<OverviewSubTab>('summary');
   const [activeMaintenanceSubTab, setActiveMaintenanceSubTab] = useState<MaintenanceSubTab>('dashboard');
-  const [activePurchasingSubTab, setActivePurchasingSubTab] = useState<PurchasingSubTab>('mcPart');
+
   const [activeErrorLogSubTab, setActiveErrorLogSubTab] = useState<ErrorLogSubTab>('errorReports');
   const [pmScheduleInitialFilter, setPmScheduleInitialFilter] = useState<'all' | 'Overdue' | 'Due soon' | 'On schedule'>('all');
   const [lineToAreaMap, setLineToAreaMap] = useState(LINE_TO_AREA_MAP);
@@ -395,8 +339,7 @@ const App: React.FC = () => {
   const [isSparePartDetailsModalOpen, setIsSparePartDetailsModalOpen] = useState(false);
   const [selectedPart, setSelectedPart] = useState<SparePart | null>(null);
 
-  const [isMcPartRequestModalOpen, setIsMcPartRequestModalOpen] = useState(false);
-  const [isNewMcPartRequestModalOpen, setIsNewMcPartRequestModalOpen] = useState(false);
+
   const [isSparePartEditModalOpen, setIsSparePartEditModalOpen] = useState(false);
   const [partToEdit, setPartToEdit] = useState<SparePart | null>(null);
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
@@ -622,22 +565,7 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
       fetchData();
   };
   
-  const handleCreateMcPartRequest = (part: SparePart) => {
-      setSelectedPart(part);
-      setIsMcPartRequestModalOpen(true);
-  };
 
-  const handleMcPartRequestSubmit = (requestData: NewMcPartRequestData) => {
-      addMcPartRequest(requestData);
-      fetchData();
-      setIsMcPartRequestModalOpen(false);
-  };
-  
-  const handleNewMcPartRequestSubmit = (requestData: NewMcPartRequestData) => {
-      addMcPartRequest(requestData);
-      fetchData();
-      setIsNewMcPartRequestModalOpen(false);
-  };
   
 
   
@@ -755,7 +683,7 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
     if (activeTab === 'maintenance') {
         return ['dashboard', 'maintenanceLog'].includes(activeMaintenanceSubTab);
     }
-    // 'shopFloor' and 'purchasing' tabs do not need the main filter bar.
+    // 'shopFloor' tab does not need the main filter bar.
     return false;
   }, [activeTab, activeMaintenanceSubTab]);
 
@@ -783,7 +711,7 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
           <TabButton tabId="overview" icon={<LayoutDashboard size={20} />} label={t('overviewTab')} />
           <TabButton tabId="errorLog" icon={<ShieldAlert size={20} />} label={t('errorLogTab')} badge={data?.summary.openErrorCount} />
           <TabButton tabId="maintenance" icon={<Wrench size={20} />} label={t('maintenanceTab')} />
-          <TabButton tabId="purchasing" icon={<ShoppingCart size={20} />} label={t('purchasingTab')} />
+
         </aside>
 
         <main className="flex-1 p-6 bg-gray-100 dark:bg-gray-900 overflow-y-auto">
@@ -985,7 +913,7 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
                     </div>
 
                     {activeMaintenanceSubTab === 'dashboard' && <MaintenanceDashboard data={data.maintenance} onOpenModal={handleOpenMaintenanceOrderModal} onNavigateToSchedule={(filter) => { setPmScheduleInitialFilter(filter); setActiveMaintenanceSubTab('pmSchedule'); }} theme={theme} />}
-                    {activeMaintenanceSubTab === 'mcPartInventory' && <SparePartsInventory parts={data.maintenance.spareParts} onPartSelect={handlePartSelect} onAddNewPart={() => handleOpenSparePartEditModal(null)} onEditPart={handleOpenSparePartEditModal} onToggleFlag={handleToggleFlagForOrder} onCreateRequest={handleCreateMcPartRequest} />}
+                    {activeMaintenanceSubTab === 'mcPartInventory' && <SparePartsInventory parts={data.maintenance.spareParts} onPartSelect={handlePartSelect} onAddNewPart={() => handleOpenSparePartEditModal(null)} onEditPart={handleOpenSparePartEditModal} onToggleFlag={handleToggleFlagForOrder} />}
                     {activeMaintenanceSubTab === 'purchaseOrders' && <McPartPurchaseOrders orders={data.maintenance.mcPartOrders} t={t} />}
                     {activeMaintenanceSubTab === 'pmSchedule' && <MaintenanceScheduleView schedule={data.maintenance.pmSchedule} onCreateWorkOrder={handleCreatePmWorkOrder} initialFilter={pmScheduleInitialFilter} />}
                     {activeMaintenanceSubTab === 'maintenanceLog' && <MaintenanceLog maintenanceOrders={data.maintenanceOrders} errorReports={data.errorReports} users={data.masterData.users} onCompleteOrder={handleOpenCompleteOrderModal} />}
@@ -993,12 +921,7 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
                 </div>
               )}
               
-              {/* Purchasing Tab */}
-              {activeTab === 'purchasing' && (
-                <div>
-                    <McPartPurchasing requests={data.purchasing.mcPartRequests} t={t} onAdd={() => setIsNewMcPartRequestModalOpen(true)} />
-                </div>
-              )}
+
 
             </div>
           )}
@@ -1057,8 +980,7 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
        />
         {enrichedSelectedPart && <SparePartDetailsModal isOpen={isSparePartDetailsModalOpen} onClose={() => setIsSparePartDetailsModalOpen(false)} part={enrichedSelectedPart} />}
 
-        {selectedPart && <McPartRequestModal isOpen={isMcPartRequestModalOpen} onClose={() => setIsMcPartRequestModalOpen(false)} onSubmit={handleMcPartRequestSubmit} part={selectedPart} />}
-        <NewMcPartRequestModal isOpen={isNewMcPartRequestModalOpen} onClose={() => setIsNewMcPartRequestModalOpen(false)} onSubmit={handleNewMcPartRequestSubmit} />
+
         <SparePartEditModal isOpen={isSparePartEditModalOpen} onClose={() => setIsSparePartEditModalOpen(false)} onSubmit={handleSparePartSubmit} partToEdit={partToEdit} />
         <DeploymentChecklistModal isOpen={isChecklistModalOpen} onClose={() => setIsChecklistModalOpen(false)} />
         <DataEntryModal 
