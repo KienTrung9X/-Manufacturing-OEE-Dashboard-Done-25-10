@@ -11,7 +11,7 @@ import {
     updateMaintenanceOrder,
     addMachine,
     updateMachine,
-    addConsumableRequest,
+
     addMcPartRequest,
     addSparePart,
     updateSparePart,
@@ -21,7 +21,7 @@ import {
     // FIX: Import LINE_TO_AREA_MAP to resolve 'Cannot find name' error.
     LINE_TO_AREA_MAP,
 } from '../services/dataService';
-import { DashboardData, EnrichedErrorReport, NewErrorReportData, UpdateErrorData, ErrorReportStatus, NewMaintenanceOrderData, CompleteMaintenanceOrderData, EnrichedDefectRecord, MachineInfo, NewMachineData, SparePart, EnrichedMaintenanceOrder, McPartPurchaseRequest, ConsumablePurchaseRequest, PurchaseStatus, NewConsumableRequestData, NewMcPartRequestData, NewSparePartData, EnrichedMaintenanceSchedule, McPartOrder, EnrichedSparePart, NewDefectData, User, PmType } from '../types';
+import { DashboardData, EnrichedErrorReport, NewErrorReportData, UpdateErrorData, ErrorReportStatus, NewMaintenanceOrderData, CompleteMaintenanceOrderData, EnrichedDefectRecord, MachineInfo, NewMachineData, SparePart, EnrichedMaintenanceOrder, McPartPurchaseRequest, PurchaseStatus, NewMcPartRequestData, NewSparePartData, EnrichedMaintenanceSchedule, McPartOrder, EnrichedSparePart, NewDefectData, User, PmType } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
 
 // UI Components
@@ -49,7 +49,7 @@ import SparePartsInventory from '../SparePartsInventory';
 import MaintenanceOrderModal from './MaintenanceOrderModal';
 import MachineEditModal from './MachineEditModal';
 import SparePartDetailsModal from './SparePartDetailsModal';
-import ConsumableRequestModal from './ConsumableRequestModal';
+
 import McPartRequestModal from './McPartRequestModal';
 import SparePartEditModal from './SparePartEditModal';
 import NewMcPartRequestModal from './NewMcPartRequestModal';
@@ -71,7 +71,7 @@ import { LayoutDashboard, BarChart3, ShieldAlert, AlertTriangle, ListChecks, Dat
 type Tab = 'shopFloor' | 'overview' | 'errorLog' | 'maintenance' | 'purchasing';
 type OverviewSubTab = 'summary' | 'performance' | 'quality' | 'downtime' | 'benchmarking';
 type MaintenanceSubTab = 'dashboard' | 'mcPartInventory' | 'purchaseOrders' | 'pmSchedule' | 'maintenanceLog';
-type PurchasingSubTab = 'mcPart' | 'consumable';
+type PurchasingSubTab = 'mcPart';
 type ErrorLogSubTab = 'errorReports' | 'defectLog';
 
 // --- START OF IN-FILE PURCHASING COMPONENTS ---
@@ -199,65 +199,7 @@ const McPartPurchasing: React.FC<McPartPurchasingProps> = ({ requests, t, onAdd 
 };
 
 
-interface ConsumablePurchasingProps {
-    requests: ConsumablePurchaseRequest[];
-    t: (key: any) => string;
-    onAdd: () => void;
-}
 
-const ConsumablePurchasing: React.FC<ConsumablePurchasingProps> = ({ requests, t, onAdd }) => {
-    const getStatusChip = (status: PurchaseStatus) => {
-        const styles: Record<PurchaseStatus, string> = {
-            'Pending': 'bg-yellow-900 text-yellow-300',
-            'Approved': 'bg-blue-900 text-blue-300',
-            'Ordered': 'bg-purple-900 text-purple-300',
-            'Received': 'bg-green-900 text-green-300',
-        };
-        return <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status]}`}>{t(status)}</span>;
-    };
-
-    return (
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
-            <div className="flex justify-end mb-4">
-                <button onClick={onAdd} className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center gap-2">
-                    <Plus size={16} /> {t('addNewRequest')}
-                </button>
-            </div>
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                            <th className="py-3 px-4 text-left">{t('image')}</th>
-                            <th className="py-3 px-4 text-left">{t('name')}</th>
-                            <th className="py-3 px-4 text-left">{t('componentCode')}</th>
-                            <th className="py-3 px-4 text-left">{t('technicalSpecifications')}</th>
-                            <th className="py-3 px-4 text-left">{t('quantity')}</th>
-                            <th className="py-3 px-4 text-left">{t('orderMonth')}</th>
-                            <th className="py-3 px-4 text-left">{t('receiptMonth')}</th>
-                            <th className="py-3 px-4 text-left">{t('status')}</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                        {requests.length > 0 ? requests.map(req => (
-                            <tr key={req.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                <td className="py-3 px-4"><img src={req.image_url} alt={req.name} className="h-10 w-10 rounded-md object-cover"/></td>
-                                <td className="py-3 px-4">{req.name}</td>
-                                <td className="py-3 px-4 font-mono">{req.component_code}</td>
-                                <td className="py-3 px-4">{req.specs}</td>
-                                <td className="py-3 px-4">{req.quantity}</td>
-                                <td className="py-3 px-4">{req.order_month}</td>
-                                <td className="py-3 px-4">{req.receipt_month}</td>
-                                <td className="py-3 px-4">{getStatusChip(req.status)}</td>
-                            </tr>
-                        )) : (
-                             <tr><td colSpan={8} className="text-center py-8 text-gray-500">{t('noConsumableRequests')}</td></tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    );
-};
 
 // --- END OF IN-FILE PURCHASING COMPONENTS ---
 
@@ -452,7 +394,7 @@ const App: React.FC = () => {
   const [machineDefaults, setMachineDefaults] = useState<Partial<NewMachineData> | undefined>(undefined);
   const [isSparePartDetailsModalOpen, setIsSparePartDetailsModalOpen] = useState(false);
   const [selectedPart, setSelectedPart] = useState<SparePart | null>(null);
-  const [isConsumableRequestModalOpen, setIsConsumableRequestModalOpen] = useState(false);
+
   const [isMcPartRequestModalOpen, setIsMcPartRequestModalOpen] = useState(false);
   const [isNewMcPartRequestModalOpen, setIsNewMcPartRequestModalOpen] = useState(false);
   const [isSparePartEditModalOpen, setIsSparePartEditModalOpen] = useState(false);
@@ -697,11 +639,7 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
       setIsNewMcPartRequestModalOpen(false);
   };
   
-  const handleConsumableRequestSubmit = (requestData: NewConsumableRequestData) => {
-      addConsumableRequest(requestData);
-      fetchData();
-      setIsConsumableRequestModalOpen(false);
-  };
+
   
   const handleDefectRecordSubmit = (formData: NewDefectData): EnrichedDefectRecord => {
     const newRecord = addDefectRecord(formData);
@@ -1058,13 +996,7 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
               {/* Purchasing Tab */}
               {activeTab === 'purchasing' && (
                 <div>
-                    <div className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-md mb-6 flex items-center justify-start space-x-2">
-                        <SubTabButton tabId="mcPart" currentTab={activePurchasingSubTab} setTab={setActivePurchasingSubTab} label={t('mcPartPurchasing')} />
-                        <SubTabButton tabId="consumable" currentTab={activePurchasingSubTab} setTab={setActivePurchasingSubTab} label={t('consumablePurchasing')} />
-                    </div>
-
-                    {activePurchasingSubTab === 'mcPart' && <McPartPurchasing requests={data.purchasing.mcPartRequests} t={t} onAdd={() => setIsNewMcPartRequestModalOpen(true)} />}
-                    {activePurchasingSubTab === 'consumable' && <ConsumablePurchasing requests={data.purchasing.consumableRequests} t={t} onAdd={() => setIsConsumableRequestModalOpen(true)} />}
+                    <McPartPurchasing requests={data.purchasing.mcPartRequests} t={t} onAdd={() => setIsNewMcPartRequestModalOpen(true)} />
                 </div>
               )}
 
@@ -1124,7 +1056,7 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
             areaMap={lineToAreaMap}
        />
         {enrichedSelectedPart && <SparePartDetailsModal isOpen={isSparePartDetailsModalOpen} onClose={() => setIsSparePartDetailsModalOpen(false)} part={enrichedSelectedPart} />}
-        <ConsumableRequestModal isOpen={isConsumableRequestModalOpen} onClose={() => setIsConsumableRequestModalOpen(false)} onSubmit={handleConsumableRequestSubmit} />
+
         {selectedPart && <McPartRequestModal isOpen={isMcPartRequestModalOpen} onClose={() => setIsMcPartRequestModalOpen(false)} onSubmit={handleMcPartRequestSubmit} part={selectedPart} />}
         <NewMcPartRequestModal isOpen={isNewMcPartRequestModalOpen} onClose={() => setIsNewMcPartRequestModalOpen(false)} onSubmit={handleNewMcPartRequestSubmit} />
         <SparePartEditModal isOpen={isSparePartEditModalOpen} onClose={() => setIsSparePartEditModalOpen(false)} onSubmit={handleSparePartSubmit} partToEdit={partToEdit} />

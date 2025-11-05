@@ -251,18 +251,7 @@ export interface McPartPurchaseRequest {
   request_date: string; // YYYY-MM-DD
 }
 
-export interface ConsumablePurchaseRequest {
-  id: number;
-  name: string;
-  component_code: string;
-  specs: string;
-  image_url: string;
-  quantity: number;
-  order_month: string; // YYYY-MM
-  receipt_month: string; // YYYY-MM
-  notes: string | null;
-  status: PurchaseStatus;
-}
+
 
 // New type for MC Part Purchase Orders based on new PRD
 export interface McPartOrder {
@@ -415,16 +404,7 @@ export interface NewDefectData {
     image_urls?: string[];
 }
 
-export interface NewConsumableRequestData {
-  name: string;
-  component_code: string;
-  specs: string;
-  image_url: string;
-  quantity: number;
-  order_month: string; // YYYY-MM
-  receipt_month: string; // YYYY-MM
-  notes: string | null;
-}
+
 
 export interface NewMcPartRequestData {
   item_code: string;
@@ -617,6 +597,5 @@ export interface DashboardData {
     };
     purchasing: {
         mcPartRequests: McPartPurchaseRequest[];
-        consumableRequests: ConsumablePurchaseRequest[];
     };
 }

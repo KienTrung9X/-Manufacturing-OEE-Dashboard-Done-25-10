@@ -5,7 +5,7 @@ import {
     OeeTarget, User, Shift, DefectType, DefectCause, SparePart,
     ErrorReport, ErrorImage, ErrorHistory, EnrichedErrorReport, NewErrorReportData, UpdateErrorData, ErrorReportStatus,
     DefectRecord, EnrichedDefectRecord, MaintenanceOrder, MaintenancePartUsage, EnrichedMaintenanceOrder, NewMaintenanceOrderData, CauseCategory, NewMachineData, NewDefectData,
-    McPartPurchaseRequest, ConsumablePurchaseRequest, PurchaseStatus, NewConsumableRequestData, NewSparePartData, NewMcPartRequestData,
+    McPartPurchaseRequest, PurchaseStatus, NewSparePartData, NewMcPartRequestData,
     MaintenanceSchedule, PmPartsTemplate, EnrichedMaintenanceSchedule, McPartOrder,
     MachineMaintenanceStats, DowntimeCauseStats,
     ScatterDataPoint,
@@ -129,7 +129,7 @@ let defectRecordsData: DefectRecord[] = [];
 let maintenanceOrdersData: MaintenanceOrder[] = [];
 let maintenancePartUsagesData: MaintenancePartUsage[] = [];
 let mcPartPurchaseRequestsData: McPartPurchaseRequest[] = [];
-let consumablePurchaseRequestsData: ConsumablePurchaseRequest[] = [];
+
 let maintenanceSchedulesData: MaintenanceSchedule[] = [];
 let oeeTargetsData: OeeTarget[] = [];
 let pmPartsTemplatesData: PmPartsTemplate[] = [];
@@ -146,7 +146,7 @@ const generateMockData = (startDate: string, endDate: string) => {
     errorHistoryData = [];
     defectRecordsData = [];
     mcPartPurchaseRequestsData = [];
-    consumablePurchaseRequestsData = [];
+
     maintenanceSchedulesData = [];
     oeeTargetsData = [];
     pmPartsTemplatesData = [];
@@ -414,10 +414,7 @@ export const updateMaintenanceOrder = (orderId: number, data: Partial<Maintenanc
     }
 };
 
-export const addConsumableRequest = (data: NewConsumableRequestData) => {
-    const newId = Math.max(0, ...consumablePurchaseRequestsData.map(r => r.id)) + 1;
-    consumablePurchaseRequestsData.push({ ...data, id: newId, status: 'Pending' });
-};
+
 
 export const addMcPartRequest = (data: NewMcPartRequestData) => {
     const newId = Math.max(0, ...mcPartPurchaseRequestsData.map(r => r.id)) + 1;
@@ -838,7 +835,6 @@ export const getDashboardData = async (
     // --- Purchasing ---
     // For simplicity, we are not filtering purchase requests by date range in this mock
     const mcPartRequests = [...mcPartPurchaseRequestsData];
-    const consumableRequests = [...consumablePurchaseRequestsData];
 
     // --- Machine Status for Shop Floor ---
     const machineStatus: MachineStatusData[] = machineInfoData.map(m => {
@@ -946,7 +942,6 @@ export const getDashboardData = async (
         },
         purchasing: {
             mcPartRequests,
-            consumableRequests,
         }
     };
 };
