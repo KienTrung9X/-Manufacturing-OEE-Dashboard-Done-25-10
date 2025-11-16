@@ -7,6 +7,7 @@ interface ErrorLogTableProps {
   reports: EnrichedErrorReport[];
   onOpenUpdateModal: (report: EnrichedErrorReport) => void;
   onStatusUpdate: (reportId: number, newStatus: ErrorReportStatus) => void;
+  onOpenNewReportModal: () => void;
 }
 
 type SortKey = keyof EnrichedErrorReport;
@@ -137,7 +138,7 @@ const ImageViewerModal: React.FC<ImageViewerModalProps> = ({ report, onClose, t 
 };
 
 
-const ErrorLogTable: React.FC<ErrorLogTableProps> = ({ reports, onOpenUpdateModal, onStatusUpdate }) => {
+const ErrorLogTable: React.FC<ErrorLogTableProps> = ({ reports, onOpenUpdateModal, onStatusUpdate, onOpenNewReportModal }) => {
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [filters, setFilters] = useState({ status: 'all', severity: 'all' });
@@ -224,6 +225,15 @@ const ErrorLogTable: React.FC<ErrorLogTableProps> = ({ reports, onOpenUpdateModa
 
     return (
         <div>
+            <div className="mb-4 flex justify-between items-center">
+                <h2 className="text-2xl font-semibold text-cyan-400 border-l-4 border-cyan-400 pl-3">{t('errorReportsSubTab')}</h2>
+                <button onClick={onOpenNewReportModal} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                    </svg>
+                    {t('newErrorReport')}
+                </button>
+            </div>
             <div className="mb-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700/50 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div className="md:col-span-2"><label className="text-sm">{t('searchBy')}</label><input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder={t('searchPlaceholder')} className="w-full bg-gray-700 p-2 rounded mt-1" /></div>
                 <div><label className="text-sm">{t('status')}</label><select name="status" value={filters.status} onChange={handleFilterChange} className="w-full bg-gray-700 p-2 rounded mt-1"><option value="all">{t('all')}</option><option>Reported</option><option>In Progress</option><option>Fixed</option><option>Not Machine Issue</option><option>Closed</option></select></div>

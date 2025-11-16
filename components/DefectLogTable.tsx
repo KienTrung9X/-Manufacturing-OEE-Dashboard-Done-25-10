@@ -10,12 +10,13 @@ interface DefectLogTableProps {
   onHighlightComplete: () => void;
   allErrorReports: EnrichedErrorReport[];
   onOpenErrorReportFromDefect: (defect: EnrichedDefectRecord) => void;
+  onOpenNewDefectModal: () => void;
 }
 
 type SortKey = keyof EnrichedDefectRecord;
 type SortDirection = 'ascending' | 'descending';
 
-const DefectLogTable: React.FC<DefectLogTableProps> = ({ data, onViewDetails, highlightedDefect, onHighlightComplete, allErrorReports, onOpenErrorReportFromDefect }) => {
+const DefectLogTable: React.FC<DefectLogTableProps> = ({ data, onViewDetails, highlightedDefect, onHighlightComplete, allErrorReports, onOpenErrorReportFromDefect, onOpenNewDefectModal }) => {
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [filters, setFilters] = useState({ severity: 'all', status: 'all', is_abnormal: 'all' });
@@ -82,6 +83,15 @@ const DefectLogTable: React.FC<DefectLogTableProps> = ({ data, onViewDetails, hi
 
     return (
         <div>
+            <div className="mb-4 flex justify-between items-center">
+                <h2 className="text-2xl font-semibold text-cyan-400 border-l-4 border-cyan-400 pl-3">{t('defectLogTitle')}</h2>
+                <button onClick={onOpenNewDefectModal} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                    </svg>
+                    {t('newDefectRecord')}
+                </button>
+            </div>
             <div className="mb-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                     <div><label className="text-sm">{t('searchBy')}</label><input type="text" value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} placeholder="Machine, defect type..." className="w-full bg-gray-700 p-2 rounded mt-1"/></div>
@@ -116,8 +126,8 @@ const DefectLogTable: React.FC<DefectLogTableProps> = ({ data, onViewDetails, hi
                                     <td className="py-4 px-4">{log.defect_type_name}</td>
                                     <td className="py-4 px-4">{log.MACHINE_ID}</td>
                                     <td className="py-4 px-4 text-red-400">{log.quantity}</td>
-                                    <td className="py-4 px-4">{log.severity}</td>
-                                    <td className="py-4 px-4">{log.status}</td>
+                                    <td className="py-4 px-4">{t(log.severity)}</td>
+                                    <td className="py-4 px-4">{log.status === 'Open' ? t('Open') : log.status === 'In Progress' ? t('InProgress') : t('Closed')}</td>
                                     <td className="py-4 px-4">{log.is_abnormal ? <span className="font-semibold text-yellow-400">{t('abnormal')}</span> : <span className="text-gray-400">{t('standard')}</span>}</td>
                                     <td className="py-4 px-4">
                                         <div className="flex items-center gap-2">

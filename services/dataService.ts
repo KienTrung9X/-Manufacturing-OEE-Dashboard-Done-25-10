@@ -45,6 +45,7 @@ export let defectTypesData: DefectType[] = [
     { id: 7, code: 'PACKAGING', name: 'Packaging' },
     { id: 8, code: 'TRIM', name: 'Material Trim' },
     { id: 9, code: 'SENSOR_ERROR', name: 'Sensor Error'},
+    { id: 10, code: 'OTHERS', name: 'Others' },
 ];
 
 export let defectCausesData: DefectCause[] = [
@@ -157,11 +158,11 @@ const generateMockData = (startDate: string, endDate: string) => {
 
     const start = new Date(startDate);
     const end = new Date(endDate);
+    const activeMachines = machineInfoData.filter(m => m.STATUS === 'active');
     for (let d = start; d <= end; d.setDate(d.getDate() + 1)) {
         const dateStr = d.toISOString().slice(0, 10);
-        for (const machine of machineInfoData) {
+        for (const machine of activeMachines) {
             for (const shift of shiftsData) {
-                if (machine.STATUS === 'inactive' && Math.random() > 0.1) continue;
 
                 const runTime = randomBetween(400, 480);
                 const downtime = 480 - runTime;
@@ -269,7 +270,8 @@ const generateMockData = (startDate: string, endDate: string) => {
     ];
 };
 
-generateMockData('2025-10-26', '2025-10-26'); // Initial data load
+// Lazy initialization - data will be generated on first fetch
+let isDataInitialized = false;
 
 // --- HELPER FUNCTIONS ---
 // ... (enrichment functions would go here if needed)
@@ -499,9 +501,14 @@ export const getDashboardData = async (
     shift: 'all' | 'A' | 'B' | 'C',
     status: 'all' | 'active' | 'inactive',
 ): Promise<DashboardData> => {
+    // Lazy initialization
+    if (!isDataInitialized) {
+        generateMockData(startDate, endDate);
+        isDataInitialized = true;
+    }
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // Simulate API delay (reduced)
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     // --- Filter Data ---
     const start = new Date(startDate);

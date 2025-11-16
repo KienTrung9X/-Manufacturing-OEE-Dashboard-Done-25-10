@@ -32,15 +32,15 @@ const PostSubmissionActions: React.FC<{
     return (
         <div className="p-6 text-center">
             <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
-            <h3 className="mt-4 text-xl font-semibold text-white">Báo cáo đã được tạo!</h3>
+            <h3 className="mt-4 text-xl font-semibold text-white">{t('reportCreated')}</h3>
             <p className="mt-2 text-sm text-gray-400">
-                Báo cáo phế phẩm #{newDefect.id} đã được ghi nhận thành công.
+                {t('defectReportRecorded')} #{newDefect.id}
             </p>
             {newDefect.is_abnormal && (
                  <div className="mt-6 space-y-3 bg-gray-700/50 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-cyan-400">Hành động tiếp theo?</p>
+                    <p className="text-sm font-semibold text-cyan-400">{t('nextAction')}</p>
                     <p className="text-xs text-gray-400">
-                        Vì đây là phế phẩm bất thường, bạn có muốn tạo báo cáo liên quan không?
+                        {t('abnormalDefectQuestion')}
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
                         <button
@@ -78,6 +78,12 @@ const DataEntryModal: React.FC<DataEntryModalProps> = ({ isOpen, onClose, onSubm
     const [formData, setFormData] = useState(getInitialState());
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [isAbnormal, setIsAbnormal] = useState(true);
+    
+    // Find "Others" defect type ID
+    const othersDefectType = useMemo(() => 
+        allDefectTypes.find(d => d.code === 'OTHERS' || d.name.toLowerCase().includes('other')) || allDefectTypes[allDefectTypes.length - 1],
+        [allDefectTypes]
+    );
     const [error, setError] = useState('');
     const [isConfirming, setIsConfirming] = useState(false);
     const [linkToMaintenance, setLinkToMaintenance] = useState(false);
@@ -173,7 +179,7 @@ const DataEntryModal: React.FC<DataEntryModalProps> = ({ isOpen, onClose, onSubm
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl text-gray-900 dark:text-white animate-fade-in-up flex flex-col" onClick={e => e.stopPropagation()}>
                 <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                     <h2 className="text-2xl font-bold">
-                        {view === 'success' ? 'Báo cáo thành công' : isConfirming ? t('confirmDefectReport') : `${t('reportDefectDetail')} (${isAbnormal ? t('abnormal') : t('standard')})`}
+                        {view === 'success' ? t('reportSuccess') : isConfirming ? t('confirmDefectReport') : `${t('reportDefectDetail')} (${isAbnormal ? t('abnormal') : t('standard')})`}
                     </h2>
                     <button onClick={onClose} aria-label="Close modal"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </header>
@@ -200,50 +206,64 @@ const DataEntryModal: React.FC<DataEntryModalProps> = ({ isOpen, onClose, onSubm
                                     {error && <div className="bg-red-900/50 text-red-300 p-3 rounded-md">{error}</div>}
                                     <fieldset className="border dark:border-gray-600 p-4 rounded-md">
                                         <legend className="px-2 font-semibold text-cyan-400">{t('category')}</legend>
-                                        <div className="flex gap-x-6"><input type="radio" id="abnormal" checked={isAbnormal} onChange={() => setIsAbnormal(true)} /><label htmlFor="abnormal">{t('abnormal')}</label></div>
-                                        <div className="flex gap-x-6"><input type="radio" id="standard" checked={!isAbnormal} onChange={() => setIsAbnormal(false)} /><label htmlFor="standard">{t('standard')}</label></div>
+                                        <div className="flex gap-x-6"><input type="radio" id="abnormal" checked={isAbnormal} onChange={() => { setIsAbnormal(true); }} /><label htmlFor="abnormal">{t('abnormal')}</label></div>
+                                        <div className="flex gap-x-6"><input type="radio" id="standard" checked={!isAbnormal} onChange={() => { setIsAbnormal(false); setFormData(prev => ({ ...prev, defect_type_id: othersDefectType?.id || prev.defect_type_id })); }} /><label htmlFor="standard">{t('standard')}</label></div>
                                     </fieldset>
 
-                                    <div className="p-4 border border-dashed border-gray-600 rounded-lg">
-                                        <div className="flex items-center gap-3">
-                                            <input id="link-maint-checkbox" type="checkbox" checked={linkToMaintenance} onChange={handleLinkCheckboxChange} className="h-4 w-4 rounded bg-gray-700 border-gray-500 text-cyan-500 focus:ring-cyan-600" />
-                                            <label htmlFor="link-maint-checkbox" className="font-semibold text-cyan-400">{t('linkToMaintOrder')}</label>
-                                        </div>
-                                        {linkToMaintenance && (
-                                            <div className="mt-3 space-y-3 animate-fade-in-up">
-                                                <p className="text-xs text-gray-400">{t('linkToMaintOrderHelp')}</p>
-                                                <FormField label={t('selectOpenMaintOrder')} id="linked_order_id">
-                                                    <select name="linked_order_id" value={linkedOrderId ?? ''} onChange={handleOrderLinkChange} className={formInputClass}>
-                                                        <option value="">{t('selectOpenMaintOrder')}</option>
-                                                        {openMaintenanceOrders.map(o => (
-                                                            <option key={o.id} value={o.id}>
-                                                                #{o.id} - {o.MACHINE_ID}: {o.task_description.substring(0, 50)}...
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </FormField>
+                                    {isAbnormal && (
+                                        <div className="p-4 border border-dashed border-gray-600 rounded-lg">
+                                            <div className="flex items-center gap-3">
+                                                <input id="link-maint-checkbox" type="checkbox" checked={linkToMaintenance} onChange={handleLinkCheckboxChange} className="h-4 w-4 rounded bg-gray-700 border-gray-500 text-cyan-500 focus:ring-cyan-600" />
+                                                <label htmlFor="link-maint-checkbox" className="font-semibold text-cyan-400">{t('linkToMaintOrder')}</label>
                                             </div>
-                                        )}
-                                    </div>
+                                            {linkToMaintenance && (
+                                                <div className="mt-3 space-y-3 animate-fade-in-up">
+                                                    <p className="text-xs text-gray-400">{t('linkToMaintOrderHelp')}</p>
+                                                    <FormField label={t('selectOpenMaintOrder')} id="linked_order_id">
+                                                        <select name="linked_order_id" value={linkedOrderId ?? ''} onChange={handleOrderLinkChange} className={formInputClass}>
+                                                            <option value="">{t('selectOpenMaintOrder')}</option>
+                                                            {openMaintenanceOrders.map(o => (
+                                                                <option key={o.id} value={o.id}>
+                                                                    #{o.id} - {o.MACHINE_ID}: {o.task_description.substring(0, 50)}...
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </FormField>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
-                                    <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-4 border dark:border-gray-600 p-4 rounded-md">
-                                        <legend className="px-2 font-semibold text-cyan-400">{t('generalInfo')}</legend>
-                                        <FormField label={t('date')} id="work_date" required><input type="date" name="work_date" value={formData.work_date} onChange={handleChange} className={formInputClass} required /></FormField>
-                                        <FormField label={t('shift')} id="shift_id" required><select name="shift_id" value={formData.shift_id} onChange={handleChange} className={formInputClass}>{allShifts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></FormField>
-                                        <FormField label={t('machine')} id="machine_id" required><select name="machine_id" value={formData.machine_id} onChange={handleChange} className={formInputClass} disabled={!!linkedOrderId}>{allMachines.map(m => <option key={m.id} value={m.id}>{m.MACHINE_ID} (Line {m.LINE_ID})</option>)}</select></FormField>
-                                        {isAbnormal && <FormField label={t('status')} id="status" required><select name="status" value={formData.status} onChange={handleChange} className={formInputClass} disabled={!!linkedOrderId}><option>Open</option><option>In Progress</option><option>Closed</option></select></FormField>}
-                                    </fieldset>
-                                    <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-4 border dark:border-gray-600 p-4 rounded-md">
-                                        <legend className="px-2 font-semibold text-cyan-400">{t('defectInfo')}</legend>
-                                        <FormField label={t('defectType')} id="defect_type_id" required><select name="defect_type_id" value={formData.defect_type_id} onChange={handleChange} className={formInputClass}>{allDefectTypes.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></FormField>
-                                        <FormField label={t('quantity')} id="quantity" required><input type="number" name="quantity" value={formData.quantity} onChange={handleChange} min="1" className={formInputClass} required/></FormField>
-                                        {isAbnormal && <>
-                                            <FormField label={t('severity')} id="severity" required><select name="severity" value={formData.severity} onChange={handleChange} className={formInputClass}><option>Low</option><option>Medium</option><option>High</option></select></FormField>
-                                            <FormField label={t('rootCause')} id="cause_id" required><select name="cause_id" value={formData.cause_id} onChange={handleChange} className={formInputClass}>{allDefectCauses.map(c => <option key={c.id} value={c.id}>{c.category}</option>)}</select></FormField>
-                                            <div className="md:col-span-2"><FormField label={t('detailedDescription')} id="note" required><textarea name="note" value={formData.note} onChange={handleChange} rows={3} className={formInputClass} required disabled={!!linkedOrderId}></textarea></FormField></div>
-                                            <div className="md:col-span-2"><FormField label={t('uploadImages')} id="images"><input type="file" onChange={handleImageChange} className={`${formInputClass} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100`} multiple accept="image/png, image/jpeg" /></FormField></div>
-                                        </>}
-                                    </fieldset>
+                                    {!isAbnormal ? (
+                                        <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-4 border dark:border-gray-600 p-4 rounded-md">
+                                            <legend className="px-2 font-semibold text-cyan-400">{t('standardWaste')} - {t('generalInfo')}</legend>
+                                            <FormField label={t('date')} id="work_date" required><input type="date" name="work_date" value={formData.work_date} onChange={handleChange} className={formInputClass} required /></FormField>
+                                            <FormField label={t('shift')} id="shift_id" required><select name="shift_id" value={formData.shift_id} onChange={handleChange} className={formInputClass}>{allShifts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></FormField>
+                                            <FormField label={t('itemCode')} id="machine_id" required><select name="machine_id" value={formData.machine_id} onChange={handleChange} className={formInputClass}>{allMachines.map(m => <option key={m.id} value={m.id}>{m.MACHINE_ID} (Line {m.LINE_ID})</option>)}</select></FormField>
+                                            <FormField label={t('defectType')} id="defect_type_id" required><select name="defect_type_id" value={formData.defect_type_id} onChange={handleChange} className={formInputClass}>{allDefectTypes.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></FormField>
+                                            <FormField label={t('quantity')} id="quantity" required><input type="number" name="quantity" value={formData.quantity} onChange={handleChange} min="1" className={formInputClass} required/></FormField>
+                                            <div className="md:col-span-2"><FormField label={t('note')} id="note"><textarea name="note" value={formData.note} onChange={handleChange} rows={2} className={formInputClass} placeholder={t('optionalNote')}></textarea></FormField></div>
+                                        </fieldset>
+                                    ) : (
+                                        <>
+                                            <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-4 border dark:border-gray-600 p-4 rounded-md">
+                                                <legend className="px-2 font-semibold text-cyan-400">{t('generalInfo')}</legend>
+                                                <FormField label={t('date')} id="work_date" required><input type="date" name="work_date" value={formData.work_date} onChange={handleChange} className={formInputClass} required /></FormField>
+                                                <FormField label={t('shift')} id="shift_id" required><select name="shift_id" value={formData.shift_id} onChange={handleChange} className={formInputClass}>{allShifts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></FormField>
+                                                <FormField label={t('machine')} id="machine_id" required><select name="machine_id" value={formData.machine_id} onChange={handleChange} className={formInputClass} disabled={!!linkedOrderId}>{allMachines.map(m => <option key={m.id} value={m.id}>{m.MACHINE_ID} (Line {m.LINE_ID})</option>)}</select></FormField>
+                                                <FormField label={t('status')} id="status" required><select name="status" value={formData.status} onChange={handleChange} className={formInputClass} disabled={!!linkedOrderId}><option>Open</option><option>In Progress</option><option>Closed</option></select></FormField>
+                                            </fieldset>
+                                            <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-4 border dark:border-gray-600 p-4 rounded-md">
+                                                <legend className="px-2 font-semibold text-cyan-400">{t('defectInfo')}</legend>
+                                                <FormField label={t('defectType')} id="defect_type_id" required><select name="defect_type_id" value={formData.defect_type_id} onChange={handleChange} className={formInputClass}>{allDefectTypes.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></FormField>
+                                                <FormField label={t('quantity')} id="quantity" required><input type="number" name="quantity" value={formData.quantity} onChange={handleChange} min="1" className={formInputClass} required/></FormField>
+                                                <FormField label={t('severity')} id="severity" required><select name="severity" value={formData.severity} onChange={handleChange} className={formInputClass}><option>Low</option><option>Medium</option><option>High</option></select></FormField>
+                                                <FormField label={t('rootCause')} id="cause_id" required><select name="cause_id" value={formData.cause_id} onChange={handleChange} className={formInputClass}>{allDefectCauses.map(c => <option key={c.id} value={c.id}>{c.category}</option>)}</select></FormField>
+                                                <div className="md:col-span-2"><FormField label={t('detailedDescription')} id="note" required><textarea name="note" value={formData.note} onChange={handleChange} rows={3} className={formInputClass} required disabled={!!linkedOrderId}></textarea></FormField></div>
+                                                <div className="md:col-span-2"><FormField label={t('uploadImages')} id="images"><input type="file" onChange={handleImageChange} className={`${formInputClass} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100`} multiple accept="image/png, image/jpeg" /></FormField></div>
+                                            </fieldset>
+                                        </>
+                                    )}
                                 </main>
                             </form>
                         )}
@@ -272,7 +292,7 @@ const DataEntryModal: React.FC<DataEntryModalProps> = ({ isOpen, onClose, onSubm
                             </>
                         )
                     ) : (
-                         <button onClick={onClose} className="bg-cyan-500 hover:bg-cyan-600 font-bold py-2 px-6 rounded-lg">Hoàn tất</button>
+                         <button onClick={onClose} className="bg-cyan-500 hover:bg-cyan-600 font-bold py-2 px-6 rounded-lg">{t('done')}</button>
                     )}
                 </footer>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 
 // Data and Types
 import { 
@@ -42,21 +42,21 @@ import ShopFloorLayout from './ShopFloorLayout';
 import HamburgerMenu from './HamburgerMenu';
 import HelpModal from './HelpModal';
 import DatabaseSchemaPanel from './DatabaseSchemaPanel';
-import AiAnalysis from './AiAnalysis';
+// Lazy load heavy components
+const AiAnalysis = lazy(() => import('./AiAnalysis'));
+const MaintenanceDashboard = lazy(() => import('./MaintenanceDashboard'));
+const BenchmarkDashboard = lazy(() => import('./BenchmarkDashboard'));
+const MaintenanceLog = lazy(() => import('./MaintenanceLog'));
+
 import ErrorLogTable from './ErrorLogTable';
-import MaintenanceDashboard from './MaintenanceDashboard';
 import SparePartsInventory from '../SparePartsInventory';
 import MaintenanceOrderModal from './MaintenanceOrderModal';
 import MachineEditModal from './MachineEditModal';
 import SparePartDetailsModal from './SparePartDetailsModal';
-
 import SparePartEditModal from './SparePartEditModal';
-// import MaintenanceScheduleView from './MaintenanceSchedule';
 import DeploymentChecklistModal from './DeploymentChecklistModal';
 import DataEntryModal from './DataEntryModal';
 import DefectLogTable from './DefectLogTable';
-import BenchmarkDashboard from './BenchmarkDashboard';
-import MaintenanceLog from './MaintenanceLog';
 import CompleteMaintenanceOrderModal from './CompleteMaintenanceOrderModal';
 // FIX: Import missing modal components to resolve 'Cannot find name' errors.
 import ErrorReportModal from './ErrorReportModal';
@@ -785,7 +785,9 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
                                 <ProductionLogTable data={data.productionLog} onMachineSelect={handleMachineSelect} oeeThreshold={thresholds.oee} allDefectTypes={data.masterData.defectTypes} allDefectRecords={data.allDefectRecords} onNavigateToLog={handleNavigateToDefectLog} />
                             </div>
                         </section>
-                         <AiAnalysis data={data} filters={filters} />
+                         <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-cyan-500" /></div>}>
+                           <AiAnalysis data={data} filters={filters} />
+                         </Suspense>
                      </div>
                    )}
                    
@@ -879,7 +881,9 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
                    )}
 
                    {activeOverviewSubTab === 'benchmarking' && (
-                        <BenchmarkDashboard data={data} theme={theme} />
+                        <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-cyan-500" /></div>}>
+                          <BenchmarkDashboard data={data} theme={theme} />
+                        </Suspense>
                    )}
 
                 </div>
@@ -893,10 +897,10 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
                          <SubTabButton tabId="defectLog" currentTab={activeErrorLogSubTab} setTab={setActiveErrorLogSubTab} label={t('defectLogTitle')} />
                     </div>
                      {activeErrorLogSubTab === 'errorReports' && (
-                        <ErrorLogTable reports={data.errorReports} onOpenUpdateModal={handleOpenUpdateModal} onStatusUpdate={handleStatusUpdate} />
+                        <ErrorLogTable reports={data.errorReports} onOpenUpdateModal={handleOpenUpdateModal} onStatusUpdate={handleStatusUpdate} onOpenNewReportModal={() => {setReportToUpdate(null); setIsErrorReportModalOpen(true);}} />
                      )}
                      {activeErrorLogSubTab === 'defectLog' && (
-                        <DefectLogTable data={data.allDefectRecords} onViewDetails={(d) => {setSelectedDefect(d); setIsDefectDetailsModalOpen(true);}} highlightedDefect={highlightedDefectInLog} onHighlightComplete={() => setHighlightedDefectInLog(null)} allErrorReports={data.errorReports} onOpenErrorReportFromDefect={handleOpenErrorReportFromDefect} />
+                        <DefectLogTable data={data.allDefectRecords} onViewDetails={(d) => {setSelectedDefect(d); setIsDefectDetailsModalOpen(true);}} highlightedDefect={highlightedDefectInLog} onHighlightComplete={() => setHighlightedDefectInLog(null)} allErrorReports={data.errorReports} onOpenErrorReportFromDefect={handleOpenErrorReportFromDefect} onOpenNewDefectModal={() => setIsDataEntryModalOpen(true)} />
                      )}
                  </section>
               )}
@@ -912,11 +916,19 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
                         <SubTabButton tabId="maintenanceLog" currentTab={activeMaintenanceSubTab} setTab={setActiveMaintenanceSubTab} label={t('maintenanceLog')} />
                     </div>
 
-                    {activeMaintenanceSubTab === 'dashboard' && <MaintenanceDashboard data={data.maintenance} onOpenModal={handleOpenMaintenanceOrderModal} onNavigateToSchedule={(filter) => { setPmScheduleInitialFilter(filter); setActiveMaintenanceSubTab('pmSchedule'); }} theme={theme} />}
+                    {activeMaintenanceSubTab === 'dashboard' && (
+                      <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-cyan-500" /></div>}>
+                        <MaintenanceDashboard data={data.maintenance} onOpenModal={handleOpenMaintenanceOrderModal} onNavigateToSchedule={(filter) => { setPmScheduleInitialFilter(filter); setActiveMaintenanceSubTab('pmSchedule'); }} theme={theme} />
+                      </Suspense>
+                    )}
                     {activeMaintenanceSubTab === 'mcPartInventory' && <SparePartsInventory parts={data.maintenance.spareParts} onPartSelect={handlePartSelect} onAddNewPart={() => handleOpenSparePartEditModal(null)} onEditPart={handleOpenSparePartEditModal} onToggleFlag={handleToggleFlagForOrder} />}
                     {activeMaintenanceSubTab === 'purchaseOrders' && <McPartPurchaseOrders orders={data.maintenance.mcPartOrders} t={t} />}
                     {activeMaintenanceSubTab === 'pmSchedule' && <MaintenanceScheduleView schedule={data.maintenance.pmSchedule} onCreateWorkOrder={handleCreatePmWorkOrder} initialFilter={pmScheduleInitialFilter} />}
-                    {activeMaintenanceSubTab === 'maintenanceLog' && <MaintenanceLog maintenanceOrders={data.maintenanceOrders} errorReports={data.errorReports} users={data.masterData.users} onCompleteOrder={handleOpenCompleteOrderModal} />}
+                    {activeMaintenanceSubTab === 'maintenanceLog' && (
+                      <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-cyan-500" /></div>}>
+                        <MaintenanceLog maintenanceOrders={data.maintenanceOrders} errorReports={data.errorReports} users={data.masterData.users} onCompleteOrder={handleOpenCompleteOrderModal} />
+                      </Suspense>
+                    )}
 
                 </div>
               )}
