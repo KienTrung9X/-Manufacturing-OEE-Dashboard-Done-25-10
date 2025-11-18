@@ -209,7 +209,7 @@ export const vi = {
   details: 'Chi tiết',
   
   // Maintenance
-  mcPartInventory: 'Tồn Kho Linh Kiện',
+  mcPartInventory: 'Linh kiện máy',
   purchaseOrders: 'Đơn Mua Hàng',
   pmSchedule: 'Lịch PM',
   maintenanceLog: 'Nhật ký Bảo trì',
@@ -281,8 +281,11 @@ export const vi = {
   used: 'Đã dùng',
   maintenanceAndStandards: 'Bảo Trì & Tiêu Chuẩn',
   maintenanceInterval: 'Chu kỳ bảo trì',
+  maintenanceCycleUnit: 'Đơn vị chu kỳ',
   lifespan: 'Tuổi thọ',
   days: 'ngày',
+  months: 'tháng',
+  years: 'năm',
   wearTearStandard: 'Tiêu chuẩn hao mòn',
   replacementStandard: 'Tiêu chuẩn thay thế',
   usageHistory: 'Lịch sử sử dụng',
@@ -668,7 +671,7 @@ export const en: Translations = {
   details: 'Details',
 
   // Maintenance
-  mcPartInventory: 'MC Part Inventory',
+  mcPartInventory: 'Machine Parts',
   purchaseOrders: 'Purchase Orders',
   pmSchedule: 'PM Schedule',
   maintenanceLog: 'Maintenance Log',
@@ -740,8 +743,11 @@ export const en: Translations = {
   used: 'Used',
   maintenanceAndStandards: 'Maintenance & Standards',
   maintenanceInterval: 'Maintenance Interval',
+  maintenanceCycleUnit: 'Cycle Unit',
   lifespan: 'Lifespan',
   days: 'days',
+  months: 'months',
+  years: 'years',
   wearTearStandard: 'Wear & Tear Standard',
   replacementStandard: 'Replacement Standard',
   usageHistory: 'Usage History',

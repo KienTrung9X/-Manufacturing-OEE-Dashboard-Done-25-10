@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { EnrichedMaintenanceOrder, EnrichedErrorReport, User } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
-import { Wrench, AlertTriangle, ChevronDown } from 'lucide-react';
+import { Wrench, AlertTriangle, ChevronDown, Plus, Filter } from 'lucide-react';
 
 interface MaintenanceLogProps {
   maintenanceOrders: EnrichedMaintenanceOrder[];
   errorReports: EnrichedErrorReport[];
   users: User[];
   onCompleteOrder: (order: EnrichedMaintenanceOrder) => void;
+  onOpenLogEntryModal: () => void;
 }
 
 type MaintenanceEvent = {
@@ -24,7 +25,7 @@ type MaintenanceEvent = {
 type SortKey = keyof MaintenanceEvent;
 type SortDirection = 'ascending' | 'descending';
 
-const MaintenanceLog: React.FC<MaintenanceLogProps> = ({ maintenanceOrders, errorReports, users, onCompleteOrder }) => {
+const MaintenanceLog: React.FC<MaintenanceLogProps> = ({ maintenanceOrders, errorReports, users, onCompleteOrder, onOpenLogEntryModal }) => {
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState<'all' | 'PM' | 'IM' | 'Repair'>('all');
@@ -34,6 +35,7 @@ const MaintenanceLog: React.FC<MaintenanceLogProps> = ({ maintenanceOrders, erro
     
     const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({ key: 'date', direction: 'descending' });
     const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+    const [showFilters, setShowFilters] = useState(false);
     
     const maintenanceTechnicians = useMemo(() => {
         return users.filter(u => u.role === 'Maintenance' || u.role === 'Supervisor' || u.role === 'Admin');
@@ -98,6 +100,7 @@ const MaintenanceLog: React.FC<MaintenanceLogProps> = ({ maintenanceOrders, erro
         setDateFilter({ start: '', end: '' });
         setTechnicianFilter('all');
         setPartFilter('');
+        setShowFilters(false);
     };
 
     const requestSort = (key: SortKey) => {
@@ -130,47 +133,69 @@ const MaintenanceLog: React.FC<MaintenanceLogProps> = ({ maintenanceOrders, erro
 
     return (
         <section>
-            <h2 className="text-2xl font-semibold text-cyan-400 mb-4 border-l-4 border-cyan-400 pl-3">{t('maintenanceLog')}</h2>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold text-cyan-400 border-l-4 border-cyan-400 pl-3">{t('maintenanceLog')}</h2>
+                <button 
+                    onClick={onOpenLogEntryModal}
+                    className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center gap-2 transition-transform transform hover:scale-105"
+                >
+                    <Plus size={16} />
+                    Nhập Nhật Ký Bảo Trì
+                </button>
+            </div>
             <div className="bg-gray-800 p-4 rounded-lg shadow-md">
-                <div className="mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700/50">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end">
-                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">{t('searchMachineLine')}</label>
-                            <input type="text" placeholder={t('machineId')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-gray-700 p-2 rounded-md"/>
-                        </div>
-                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">{t('dateRange')}</label>
-                            <div className="flex items-center gap-2">
-                                <input type="date" value={dateFilter.start} onChange={e => setDateFilter(p => ({...p, start: e.target.value}))} className="w-full bg-gray-700 p-2 rounded-md" aria-label={t('startDate')}/>
-                                <span className="text-gray-400">-</span>
-                                <input type="date" value={dateFilter.end} onChange={e => setDateFilter(p => ({...p, end: e.target.value}))} className="w-full bg-gray-700 p-2 rounded-md" aria-label={t('endDate')}/>
+                <div className="mb-4 flex justify-between items-center">
+                    <button 
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors"
+                    >
+                        <Filter size={16} />
+                        {showFilters ? 'Ẩn Bộ Lọc' : 'Hiện Bộ Lọc'}
+                        <ChevronDown size={16} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                    </button>
+                </div>
+                
+                {showFilters && (
+                    <div className="mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700/50 animate-fade-in-up">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">{t('searchMachineLine')}</label>
+                                <input type="text" placeholder={t('machineId')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-gray-700 p-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500"/>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">{t('eventType')}</label>
+                                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as any)} className="w-full bg-gray-700 p-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                    <option value="all">{t('all')} {t('eventType')}</option>
+                                    <option value="PM">{t('pm')}</option>
+                                    <option value="IM">{t('IM')}</option>
+                                    <option value="Repair">{t('repair')}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">{t('technician')}</label>
+                                <select value={technicianFilter} onChange={(e) => setTechnicianFilter(e.target.value)} className="w-full bg-gray-700 p-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                    <option value="all">{t('allTechnicians')}</option>
+                                    {maintenanceTechnicians.map(user => <option key={user.id} value={user.full_name}>{user.full_name}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">{t('dateRange')}</label>
+                                <div className="flex items-center gap-2">
+                                    <input type="date" value={dateFilter.start} onChange={e => setDateFilter(p => ({...p, start: e.target.value}))} className="flex-1 bg-gray-700 p-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500" aria-label={t('startDate')}/>
+                                    <span className="text-gray-400">-</span>
+                                    <input type="date" value={dateFilter.end} onChange={e => setDateFilter(p => ({...p, end: e.target.value}))} className="flex-1 bg-gray-700 p-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500" aria-label={t('endDate')}/>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">{t('sparePart')}</label>
+                                <input type="text" placeholder={t('searchByPart')} value={partFilter} onChange={(e) => setPartFilter(e.target.value)} className="w-full bg-gray-700 p-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500"/>
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">{t('sparePart')}</label>
-                            <input type="text" placeholder={t('searchByPart')} value={partFilter} onChange={(e) => setPartFilter(e.target.value)} className="w-full bg-gray-700 p-2 rounded-md"/>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">{t('technician')}</label>
-                            <select value={technicianFilter} onChange={(e) => setTechnicianFilter(e.target.value)} className="w-full bg-gray-700 p-2 rounded-md">
-                                <option value="all">{t('allTechnicians')}</option>
-                                {maintenanceTechnicians.map(user => <option key={user.id} value={user.full_name}>{user.full_name}</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">{t('eventType')}</label>
-                            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as any)} className="w-full bg-gray-700 p-2 rounded-md">
-                                <option value="all">{t('all')} {t('eventType')}</option>
-                                <option value="PM">{t('pm')}</option>
-                                <option value="IM">{t('IM')}</option>
-                                <option value="Repair">{t('repair')}</option>
-                            </select>
+                        <div className="mt-4 flex justify-end">
+                            <button onClick={handleClearFilters} className="text-sm text-cyan-400 hover:underline">{t('clearFilters')}</button>
                         </div>
                     </div>
-                    <div className="mt-4 flex justify-end">
-                        <button onClick={handleClearFilters} className="text-sm text-cyan-400 hover:underline">{t('clearFilters')}</button>
-                    </div>
-                </div>
+                )}
 
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-700">

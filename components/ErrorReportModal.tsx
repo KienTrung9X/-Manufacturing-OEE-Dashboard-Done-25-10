@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { EnrichedErrorReport, NewErrorReportData, UpdateErrorData, ErrorReportStatus, MachineInfo, Shift, DefectType, User, DefectCause, EnrichedMaintenanceOrder, ErrorImage } from '../types';
+import { EnrichedErrorReport, NewErrorReportData, UpdateErrorData, ErrorReportStatus, MachineInfo, Shift, DefectType, User, DefectCause, ErrorImage } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
 import { X } from 'lucide-react';
 
@@ -16,7 +16,6 @@ interface ErrorReportModalProps {
     machines: MachineInfo[];
     defectCauses: DefectCause[];
   };
-  openMaintenanceOrders: EnrichedMaintenanceOrder[];
   defaults?: Partial<NewErrorReportData>;
 }
 
@@ -104,7 +103,7 @@ const ImageUploader: React.FC<{
 };
 
 
-const ErrorReportModal: React.FC<ErrorReportModalProps> = ({ isOpen, onClose, onSubmit, onUpdate, reportToUpdate, masterData, openMaintenanceOrders, defaults }) => {
+const ErrorReportModal: React.FC<ErrorReportModalProps> = ({ isOpen, onClose, onSubmit, onUpdate, reportToUpdate, masterData, defaults }) => {
     const { t } = useTranslation();
     const isUpdateMode = !!reportToUpdate;
     const MAX_IMAGES = 3;
@@ -127,8 +126,6 @@ const ErrorReportModal: React.FC<ErrorReportModalProps> = ({ isOpen, onClose, on
     const [updateData, setUpdateData] = useState(getInitialUpdateState());
     const [error, setError] = useState('');
     const [completionStatus, setCompletionStatus] = useState<ErrorReportStatus>('Fixed');
-    const [linkToOrder, setLinkToOrder] = useState(false);
-    const [linkedOrderId, setLinkedOrderId] = useState<number | null>(null);
     const [newImages, setNewImages] = useState<{ preview: string; description: string; file: File }[]>([]);
 
 
@@ -136,40 +133,17 @@ const ErrorReportModal: React.FC<ErrorReportModalProps> = ({ isOpen, onClose, on
         if (isOpen && masterData) {
             if (isUpdateMode) {
                 setUpdateData(getInitialUpdateState());
-                setLinkToOrder(false);
-                setLinkedOrderId(null);
             } else {
-                const prelinkedOrderId = defaults?.linked_maintenance_order_id;
                 const initialState = { ...getInitialCreateState(), ...defaults };
-
-                if (prelinkedOrderId) {
-                    const order = openMaintenanceOrders.find(o => o.id === prelinkedOrderId);
-                    setLinkToOrder(true);
-                    setLinkedOrderId(prelinkedOrderId);
-                    if (order) {
-                        initialState.machine_id = order.machine_id;
-                    }
-                } else {
-                    setLinkToOrder(false);
-                    setLinkedOrderId(null);
-                }
                 setCreateData(initialState);
             }
             setError('');
             setCompletionStatus('Fixed');
             setNewImages([]);
         }
-    }, [isOpen, reportToUpdate, masterData, defaults, isUpdateMode, openMaintenanceOrders]);
+    }, [isOpen, reportToUpdate, masterData, defaults, isUpdateMode]);
 
-    // Effect to update machine_id when linked order changes
-    useEffect(() => {
-        if (!isUpdateMode && linkToOrder && linkedOrderId) {
-            const order = openMaintenanceOrders.find(o => o.id === linkedOrderId);
-            if (order && createData.machine_id !== order.machine_id) {
-                setCreateData(prev => ({...prev, machine_id: order.machine_id}));
-            }
-        }
-    }, [linkedOrderId, linkToOrder, isUpdateMode, openMaintenanceOrders]);
+
 
     const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -237,7 +211,6 @@ const ErrorReportModal: React.FC<ErrorReportModalProps> = ({ isOpen, onClose, on
             onSubmit({ 
                 ...createData, 
                 operator_id,
-                linked_maintenance_order_id: linkToOrder ? linkedOrderId : null,
                 images: imagesForSubmission,
             });
         }
@@ -262,7 +235,7 @@ const ErrorReportModal: React.FC<ErrorReportModalProps> = ({ isOpen, onClose, on
                         <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-4 border dark:border-gray-600 p-4 rounded-md">
                             <legend className="px-2 font-semibold text-cyan-400">{t('operatorReport')}</legend>
                             <FormField label={t('machine')} id="machine_id" required>
-                                <select name="machine_id" value={isUpdateMode ? reportToUpdate.machine_id : createData.machine_id} onChange={(e) => handleChange(e, 'create')} className={formInputClass} disabled={isUpdateMode || linkToOrder}>
+                                <select name="machine_id" value={isUpdateMode ? reportToUpdate.machine_id : createData.machine_id} onChange={(e) => handleChange(e, 'create')} className={formInputClass} disabled={isUpdateMode}>
                                     {masterData.machines.map(m => <option key={m.id} value={m.id}>{m.MACHINE_ID} - {m.MACHINE_NAME}</option>)}
                                 </select>
                             </FormField>
@@ -297,34 +270,6 @@ const ErrorReportModal: React.FC<ErrorReportModalProps> = ({ isOpen, onClose, on
                                 maxImages={MAX_IMAGES}
                                 disabled={isUpdateMode}
                             />
-                            
-                            {!isUpdateMode && (
-                                <div className="p-4 border border-dashed border-gray-600 rounded-lg md:col-span-2">
-                                    <div className="flex items-center gap-3">
-                                        <input id="link-maint-checkbox-error-report" type="checkbox" checked={linkToOrder} onChange={(e) => {
-                                            setLinkToOrder(e.target.checked);
-                                            if (!e.target.checked) setLinkedOrderId(null);
-                                        }} className="h-4 w-4 rounded bg-gray-700 border-gray-500 text-cyan-500 focus:ring-cyan-600" />
-                                        <label htmlFor="link-maint-checkbox-error-report" className="font-semibold text-cyan-400">{t('linkToMaintOrder')}</label>
-                                    </div>
-                                    {linkToOrder && (
-                                        <div className="mt-3 space-y-3 animate-fade-in-up">
-                                            <p className="text-xs text-gray-400">{t('linkToMaintOrderHelp')}</p>
-                                            <FormField label={t('selectOpenMaintOrder')} id="linked_order_id_error_report">
-                                                <select name="linked_maintenance_order_id" value={linkedOrderId ?? ''} onChange={(e) => setLinkedOrderId(e.target.value ? parseInt(e.target.value, 10) : null)} className={formInputClass}>
-                                                    <option value="">{t('selectOpenMaintOrder')}</option>
-                                                    {openMaintenanceOrders.map(o => (
-                                                        <option key={o.id} value={o.id}>
-                                                            {/* FIX: Replaced non-existent property 'symptom' with 'task_description'. */}
-                                                            #{o.id} - {o.MACHINE_ID}: {o.task_description.substring(0, 50)}...
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </FormField>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                         </fieldset>
 
                         {isUpdateMode && !isReadOnly && (

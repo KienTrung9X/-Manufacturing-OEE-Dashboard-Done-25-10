@@ -135,6 +135,7 @@ export interface SparePart {
     safety_stock: number;
     reorder_point: number;
     maintenance_interval_days?: number;
+    maintenance_cycle_unit?: 'days' | 'months' | 'years';
     flagged_for_order?: boolean;
     // New fields for enhanced details
     image_url?: string;
@@ -349,7 +350,6 @@ export interface NewErrorReportData {
     defect_description: string;
     severity: ErrorSeverity;
     images?: { url: string; description: string }[];
-    linked_maintenance_order_id?: number | null;
     linked_defect_id?: number | null;
 }
 
@@ -424,6 +424,7 @@ export interface NewSparePartData {
   reserved: number;
   used_in_period: number;
   maintenance_interval_days?: number;
+  maintenance_cycle_unit?: 'days' | 'months' | 'years';
   image_url?: string;
   lifespan_days?: number;
   wear_tear_standard?: string;

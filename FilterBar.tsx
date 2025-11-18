@@ -112,7 +112,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <div>
           <label htmlFor="date-mode-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('dateRange')}</label>
           <select id="date-mode-select" value={filters.mode} onChange={handleModeChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm rounded-md">
@@ -123,18 +123,16 @@ const FilterBar: React.FC<FilterBarProps> = ({
             <option value="lastWeek">Last Week</option>
           </select>
         </div>
-        <div className="flex gap-2">
-            <div>
-              <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('startDate')}</label>
-              <input type="date" id="start-date" name="startDate" value={filters.startDate} onChange={handleDateChange} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm rounded-md" />
-            </div>
-            {filters.mode === 'range' && (
-             <div>
-                <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('endDate')}</label>
-                <input type="date" id="end-date" name="endDate" value={filters.endDate} onChange={handleDateChange} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm rounded-md" />
-              </div>
-            )}
+        <div>
+          <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('startDate')}</label>
+          <input type="date" id="start-date" name="startDate" value={filters.startDate} onChange={handleDateChange} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm rounded-md" />
         </div>
+        {filters.mode === 'range' && (
+         <div>
+            <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('endDate')}</label>
+            <input type="date" id="end-date" name="endDate" value={filters.endDate} onChange={handleDateChange} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm rounded-md" />
+          </div>
+        )}
         <div>
           <label htmlFor="area-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('area')}</label>
           <select id="area-select" value={filters.area} onChange={e => onFilterChange({ area: e.target.value })} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm rounded-md">

@@ -41,6 +41,7 @@ const SparePartEditModal: React.FC<SparePartEditModalProps> = ({ isOpen, onClose
         reserved: 0,
         used_in_period: 0,
         maintenance_interval_days: undefined,
+        maintenance_cycle_unit: 'days',
         image_url: '',
         lifespan_days: undefined,
         wear_tear_standard: '',
@@ -67,6 +68,7 @@ const SparePartEditModal: React.FC<SparePartEditModalProps> = ({ isOpen, onClose
                     reserved: partToEdit.reserved,
                     used_in_period: partToEdit.used_in_period,
                     maintenance_interval_days: partToEdit.maintenance_interval_days,
+                    maintenance_cycle_unit: partToEdit.maintenance_cycle_unit || 'days',
                     image_url: partToEdit.image_url || '',
                     lifespan_days: partToEdit.lifespan_days,
                     wear_tear_standard: partToEdit.wear_tear_standard || '',
@@ -82,7 +84,7 @@ const SparePartEditModal: React.FC<SparePartEditModalProps> = ({ isOpen, onClose
         }
     }, [isOpen, partToEdit]);
     
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         const isNumeric = ['available', 'reorder_point', 'safety_stock', 'in_transit', 'reserved', 'used_in_period', 'maintenance_interval_days', 'lifespan_days'].includes(name);
         setFormData(prev => ({ ...prev, [name]: isNumeric ? (value === '' ? undefined : Number(value)) : value }));
@@ -195,8 +197,15 @@ const SparePartEditModal: React.FC<SparePartEditModalProps> = ({ isOpen, onClose
 
                         <fieldset className="border dark:border-gray-600 p-4 rounded-md">
                             <legend className="px-2 font-semibold text-cyan-400">{t('maintenanceAndStandards')}</legend>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField label={`${t('maintenanceInterval')} (${t('days')})`} id="maintenance_interval_days"><input type="number" name="maintenance_interval_days" value={formData.maintenance_interval_days || ''} onChange={handleChange} min="0" className={formInputClass} /></FormField>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <FormField label={t('maintenanceInterval')} id="maintenance_interval_days"><input type="number" name="maintenance_interval_days" value={formData.maintenance_interval_days || ''} onChange={handleChange} min="0" className={formInputClass} /></FormField>
+                                <FormField label={t('maintenanceCycleUnit')} id="maintenance_cycle_unit">
+                                    <select name="maintenance_cycle_unit" value={formData.maintenance_cycle_unit || 'days'} onChange={handleChange} className={formInputClass}>
+                                        <option value="days">{t('days')}</option>
+                                        <option value="months">{t('months')}</option>
+                                        <option value="years">{t('years')}</option>
+                                    </select>
+                                </FormField>
                                 <FormField label={`${t('lifespan')} (${t('days')})`} id="lifespan_days"><input type="number" name="lifespan_days" value={formData.lifespan_days || ''} onChange={handleChange} min="0" className={formInputClass} /></FormField>
                                 <div className="md:col-span-2"><FormField label={t('wearTearStandard')} id="wear_tear_standard"><textarea name="wear_tear_standard" value={formData.wear_tear_standard || ''} onChange={handleChange} rows={3} className={formInputClass}></textarea></FormField></div>
                                 <div className="md:col-span-2"><FormField label={t('replacementStandard')} id="replacement_standard"><textarea name="replacement_standard" value={formData.replacement_standard || ''} onChange={handleChange} rows={3} className={formInputClass}></textarea></FormField></div>

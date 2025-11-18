@@ -74,7 +74,7 @@ export let sparePartsData: SparePart[] = [
     // Sufficient stock
     { id: 1, part_code: 'FIL-001', name: 'Air Filter', location: 'Aisle 3, Bin 12', 
       available: 15, in_transit: 0, reserved: 2, used_in_period: 8, safety_stock: 8, reorder_point: 10,
-      maintenance_interval_days: 30, flagged_for_order: false,
+      maintenance_interval_days: 30, maintenance_cycle_unit: 'days', flagged_for_order: false,
       image_url: 'https://storage.googleapis.com/aistudio-marketplace-llm-provider-images/website_pr_assets_maker-explainer/spare-part-filter.png',
       lifespan_days: 180,
       wear_tear_standard: 'Check for clogging and tears. Airflow reduction > 20% indicates wear.',
@@ -83,7 +83,7 @@ export let sparePartsData: SparePart[] = [
     // Almost out
     { id: 2, part_code: 'BLT-A300', name: 'Belt A300', location: 'Aisle 3, Bin 5', 
       available: 3, in_transit: 0, reserved: 0, used_in_period: 8, safety_stock: 3, reorder_point: 5,
-      flagged_for_order: false,
+      maintenance_interval_days: 24, maintenance_cycle_unit: 'months', flagged_for_order: false,
       image_url: 'https://storage.googleapis.com/aistudio-marketplace-llm-provider-images/website_pr_assets_maker-explainer/spare-part-belt.png',
       lifespan_days: 730,
       wear_tear_standard: 'Visible cracks, fraying, or loss of tension.',
@@ -92,24 +92,24 @@ export let sparePartsData: SparePart[] = [
     // Sufficient stock
      { id: 3, part_code: 'BEAR-210', name: 'Ball Bearing 210mm', location: 'Aisle 3, Bin 5',
       available: 50, in_transit: 20, reserved: 5, used_in_period: 15, safety_stock: 15, reorder_point: 20,
-      maintenance_interval_days: 365, flagged_for_order: false,
+      maintenance_interval_days: 1, maintenance_cycle_unit: 'years', flagged_for_order: false,
       image_url: 'https://storage.googleapis.com/aistudio-marketplace-llm-provider-images/website_pr_assets_maker-explainer/spare-part-bearing.png'
     },
      // Need to order
     { id: 4, part_code: 'NOZ-PNT-A', name: 'Paint Nozzle Type A', location: 'Aisle 5, Bin 1',
       available: 4, in_transit: 0, reserved: 1, used_in_period: 5, safety_stock: 5, reorder_point: 5,
-      flagged_for_order: false,
+      maintenance_interval_days: 6, maintenance_cycle_unit: 'months', flagged_for_order: false,
       image_url: 'https://storage.googleapis.com/aistudio-marketplace-llm-provider-images/website_pr_assets_maker-explainer/spare-part-nozzle.png'
     },
     // From PRD example: "Cần đặt hàng" (Need to order)
     { id: 5, part_code: 'CP-F20005', name: 'Coupling F20005', location: 'Aisle 2, Bin 8', 
       available: 1, in_transit: 1, reserved: 2, used_in_period: 15, safety_stock: 4, reorder_point: 6,
-      flagged_for_order: true
+      maintenance_interval_days: 90, maintenance_cycle_unit: 'days', flagged_for_order: true
     },
     // From PRD example: "Đủ" (Sufficient)
     { id: 6, part_code: 'BRG-6301ZZE', name: 'Bearing 6301ZZE', location: 'Aisle 1, Bin 4', 
       available: 5, in_transit: 2, reserved: 1, used_in_period: 20, safety_stock: 3, reorder_point: 5,
-      flagged_for_order: false,
+      maintenance_interval_days: 18, maintenance_cycle_unit: 'months', flagged_for_order: false,
       image_url: 'https://storage.googleapis.com/aistudio-marketplace-llm-provider-images/website_pr_assets_maker-explainer/spare-part-bearing-2.png'
     },
 ];
@@ -327,7 +327,7 @@ export const addErrorReport = (data: NewErrorReportData) => {
         note: null,
         created_at: now,
         updated_at: now,
-        linked_maintenance_order_id: data.linked_maintenance_order_id || null,
+        linked_maintenance_order_id: null,
         linked_defect_id: data.linked_defect_id || null,
     };
     errorReportsData.push(newReport);

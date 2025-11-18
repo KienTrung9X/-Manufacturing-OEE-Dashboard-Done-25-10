@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { SparePart } from './types';
-import { AlertTriangle, Flag, ShoppingCart, Plus, Edit, CheckCircle, Clock, ChevronDown } from 'lucide-react';
+import { AlertTriangle, Flag, Plus, Edit, CheckCircle, Clock, ChevronDown, ShoppingCart } from 'lucide-react';
 import { useTranslation } from './i18n/LanguageContext';
 
 interface LowStockTableProps {
@@ -102,7 +102,7 @@ const SparePartsInventory: React.FC<SparePartsInventoryProps> = ({ parts, onPart
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({ key: 'part_code', direction: 'ascending' });
     
-    const lowStockParts = useMemo(() => parts.filter(p => (p.available + p.in_transit) < p.reorder_point), [parts]);
+
 
     const getPartStatus = (part: SparePart) => {
         if ((part.available + part.in_transit) < part.reorder_point) {
@@ -161,6 +161,7 @@ const SparePartsInventory: React.FC<SparePartsInventoryProps> = ({ parts, onPart
         { key: 'available', label: t('available') },
         { key: 'in_transit', label: t('inTransit') },
         { key: 'reserved', label: t('reserved') },
+        { key: 'maintenance_interval_days', label: t('maintenanceInterval') },
         { key: 'status', label: t('status') },
     ];
 
@@ -176,11 +177,7 @@ const SparePartsInventory: React.FC<SparePartsInventoryProps> = ({ parts, onPart
                     {t('addNewPart')}
                 </button>
             </div>
-             {lowStockParts.length > 0 && (
-                <div className="mb-6">
-                    <LowStockTable lowStockParts={lowStockParts} onCreatePo={() => {}} />
-                </div>
-            )}
+
             <div className="bg-gray-800 p-4 rounded-lg shadow-md">
                 <div className="mb-4">
                     <input
@@ -230,6 +227,15 @@ const SparePartsInventory: React.FC<SparePartsInventoryProps> = ({ parts, onPart
                                         <td className="p-3 font-semibold">{part.available}</td>
                                         <td className="p-3">{part.in_transit}</td>
                                         <td className="p-3">{part.reserved}</td>
+                                        <td className="p-3">
+                                            {part.maintenance_interval_days ? (
+                                                <span className="text-cyan-300">
+                                                    {part.maintenance_interval_days} {t(part.maintenance_cycle_unit || 'days')}
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-500">-</span>
+                                            )}
+                                        </td>
                                         <td className="p-3">
                                             <div className={`flex items-center gap-2 font-semibold ${status.color}`}>
                                                 {status.icon}

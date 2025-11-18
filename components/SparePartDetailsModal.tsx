@@ -98,7 +98,7 @@ const SparePartDetailsModal: React.FC<SparePartDetailsModalProps> = ({ isOpen, o
 
                     <SectionCard title={t('maintenanceAndStandards')} icon={<Wrench size={18} />} fullWidth>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <DetailItem label={`${t('maintenanceInterval')} (${t('days')})`} value={`${part.maintenance_interval_days || 'N/A'} ${part.maintenance_interval_days ? t('days') : ''}`} />
+                            <DetailItem label={t('maintenanceInterval')} value={part.maintenance_interval_days ? `${part.maintenance_interval_days} ${t(part.maintenance_cycle_unit || 'days')}` : 'N/A'} />
                             <DetailItem label={`${t('lifespan')} (${t('days')})`} value={`${part.lifespan_days || 'N/A'} ${part.lifespan_days ? t('days') : ''}`} />
                             <div className="md:col-span-2"><DetailItem label={t('wearTearStandard')} value={part.wear_tear_standard} /></div>
                             <div className="md:col-span-2"><DetailItem label={t('replacementStandard')} value={part.replacement_standard} /></div>

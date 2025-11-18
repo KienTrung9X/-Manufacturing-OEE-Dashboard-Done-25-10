@@ -61,6 +61,7 @@ import CompleteMaintenanceOrderModal from './CompleteMaintenanceOrderModal';
 // FIX: Import missing modal components to resolve 'Cannot find name' errors.
 import ErrorReportModal from './ErrorReportModal';
 import DefectDetailsModal from './DefectDetailsModal';
+import MaintenanceLogEntryModal from './MaintenanceLogEntryModal';
 
 
 // Icons
@@ -351,6 +352,7 @@ const App: React.FC = () => {
   const [orderToComplete, setOrderToComplete] = useState<EnrichedMaintenanceOrder | null>(null);
   const [maintenanceOrderDefaults, setMaintenanceOrderDefaults] = useState<Partial<NewMaintenanceOrderData> | undefined>(undefined);
   const [errorReportDefaults, setErrorReportDefaults] = useState<Partial<NewErrorReportData> | undefined>(undefined);
+  const [isMaintenanceLogEntryModalOpen, setIsMaintenanceLogEntryModalOpen] = useState(false);
 
 
   // Initial filters from service
@@ -586,7 +588,7 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
         defect_description: defect.note || `Abnormal defect reported: ${defect.defect_type_name}`,
         severity: defect.severity,
         linked_defect_id: defect.id,
-        linked_maintenance_order_id: defect.linked_maintenance_order_id,
+
     });
     // Use a timeout to ensure the state updates and the new modal opens cleanly
     setTimeout(() => setIsErrorReportModalOpen(true), 100);
@@ -926,7 +928,7 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
                     {activeMaintenanceSubTab === 'pmSchedule' && <MaintenanceScheduleView schedule={data.maintenance.pmSchedule} onCreateWorkOrder={handleCreatePmWorkOrder} initialFilter={pmScheduleInitialFilter} />}
                     {activeMaintenanceSubTab === 'maintenanceLog' && (
                       <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-cyan-500" /></div>}>
-                        <MaintenanceLog maintenanceOrders={data.maintenanceOrders} errorReports={data.errorReports} users={data.masterData.users} onCompleteOrder={handleOpenCompleteOrderModal} />
+                        <MaintenanceLog maintenanceOrders={data.maintenanceOrders} errorReports={data.errorReports} users={data.masterData.users} onCompleteOrder={handleOpenCompleteOrderModal} onOpenLogEntryModal={() => setIsMaintenanceLogEntryModalOpen(true)} />
                       </Suspense>
                     )}
 
@@ -959,7 +961,6 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
           onUpdate={handleErrorReportUpdate}
           reportToUpdate={reportToUpdate}
           masterData={data?.masterData as any}
-          openMaintenanceOrders={data?.maintenance.schedule.overdue.concat(data.maintenance.schedule.dueSoon) || []}
           defaults={errorReportDefaults}
        />
        <MaintenanceOrderModal
@@ -1003,7 +1004,6 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
             allShifts={data?.masterData.shifts || []}
             allDefectTypes={data?.masterData.defectTypes || []}
             allDefectCauses={data?.masterData.defectCauses || []}
-            openMaintenanceOrders={data?.maintenanceOrders.filter(o => o.status === 'Open' || o.status === 'InProgress') || []}
             currentDate={filters.startDate}
             onOpenLinkedErrorReport={handleOpenErrorReportFromDefect}
         />
@@ -1012,6 +1012,15 @@ const handleAddNewAreaSubmit = (newAreaName: string, newLineId: string) => {
             onClose={() => setIsDefectDetailsModalOpen(false)}
             defect={selectedDefect}
             onNavigateToLog={handleNavigateToDefectLog}
+        />
+        <MaintenanceLogEntryModal
+            isOpen={isMaintenanceLogEntryModalOpen}
+            onClose={() => setIsMaintenanceLogEntryModalOpen(false)}
+            onSubmit={(data) => { console.log('Maintenance log entry:', data); setIsMaintenanceLogEntryModalOpen(false); }}
+            allMachines={data?.masterData.machines || []}
+            allUsers={data?.masterData.users || []}
+            allSpareParts={data?.masterData.spareParts || []}
+            openErrorReports={data?.errorReports.filter(r => r.status === 'Reported' || r.status === 'In Progress') || []}
         />
 
     </div>
